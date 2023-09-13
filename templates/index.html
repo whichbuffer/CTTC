@@ -1,75 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTTC - Cyber Threat to Context</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
- 
 </head>
 
 <style>
+    body {
+        background-color: #f7f7f7;
+    }
 
-.button-style {
-    padding-top:20px ;
-}
+    .button-style {
+        padding-top: 20px;
+    }
 
-.custom-control-input:checked ~ .custom-control-label::before {
-    background-color: rgba(69,89,164,.5);
-    border-color: rgba(69,89,164,.5);
-}
+    .custom-control-input:checked ~ .custom-control-label::before {
+        background-color: rgba(69, 89, 164, .5);
+        border-color: rgba(69, 89, 164, .5);
+    }
 
-.custom-switch .custom-control-label::before {
-    border-radius: .25rem;
-}
+    .custom-switch .custom-control-label::before {
+        border-radius: .25rem;
+    }
 
-.custom-switch .custom-control-input:checked ~ .custom-control-label::after {
-    background-color: #fff;
-    transform: translateX(.75rem);
-}
-#usageSection {
-    margin-bottom: 20px;
-}
-.usage-btn {
-    margin-top: 10px;
-    margin-right: 40px;
-}
-.usage-btn img {
-    vertical-align: middle;
-}
+    .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
+        background-color: #fff;
+        transform: translateX(.75rem);
+    }
 
+    #usageSection {
+        margin-bottom: 20px;
+    }
 
+    .usage-btn {
+        margin-top: 10px;
+        margin-right: 40px;
+    }
 
+    .usage-btn img {
+        vertical-align: middle;
+    }
+
+    .main-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
 </style>
+
 <body>
 
-    <button class="btn btn-link float-right usage-btn" type="button" data-toggle="collapse" data-target="#usageSection" aria-expanded="false" aria-controls="usageSection">
-        Usage <img src="{{ url_for('static', filename='clippy.png') }}" alt="Clippy" style="height:50px; margin-left:50px;">
-    </button>
-    <div class="collapse" id="usageSection">
-        <div class="card card-body">
-            <h5>How to Use:</h5>
-            <ul>
-                <li>Enter the URL of the threat research you want to analyze.</li>
-                <li>Select the desired action from ChatGPT.</li>
-                <li>Optionally, you can choose to summarize the event.</li>
-                <li>Click "Submit" and wait for the results to appear below.</li>
-            </ul>
-        </div>
-    </div>
-    
+    <div class="container mt-5 main-container">
+        <h2 class="mb-4">CTTC - Cyber Threat to Context</h2>
+        <p>Analyze threat research URLs and get insights with the help of ChatGPT.</p>
 
-    
-    <div class="container mt-5">
+        <button class="btn btn-link float-right usage-btn" type="button" data-toggle="collapse" data-target="#usageSection" aria-expanded="false" aria-controls="usageSection">
+            Usage <img src="{{ url_for('static', filename='clippy.png') }}" alt="Clippy" style="height:50px; margin-left:50px;">
+        </button>
+        <div class="collapse" id="usageSection">
+            <div class="card card-body">
+                <h5>How to Use:</h5>
+                <ul>
+                    <li>Enter the URL of the threat research you want to analyze.</li>
+                    <li>Select the desired action from ChatGPT.</li>
+                    <li>Optionally, you can choose to summarize the event.</li>
+                    <li>Click "Submit" and wait for the results to appear below.</li>
+                </ul>
+            </div>
+        </div>
+
         <form action="/" method="post" enctype="multipart/form-data" id="threatForm">
             {{ form.hidden_tag() }}
-    
+
             <div class="form-group">
                 <label for="url">URL of the threat research:</label>
                 {{ form.url(class="form-control") }}
             </div>
-    
+
             <div class="form-group">
                 <label class="font-weight-bold">I need to get:</label><br>
                 {% for subfield in form.actions %}
@@ -79,17 +91,20 @@
                 </div>
                 {% endfor %}
             </div>
-    
+
             <div class="custom-control custom-switch">
                 {{ form.summarize_event(class="custom-control-input", id="summarize_event") }}
                 <label for="summarize_event" class="custom-control-label">Summarize Event</label>
             </div>
-    
+
             <div class="form-group button-style">
                 {{ form.submit(class="btn btn-primary", id="submitButton") }}
+                <div class="spinner-border text-primary" id="loadingSpinner" style="display: none;" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
             </div>
         </form>
-    
+
         {% if course_of_action %}
         <h2>From ChatGPT:</h2>
         <div class="course-of-action-content">
@@ -97,8 +112,6 @@
         </div>
         {% endif %}
     </div>
-    
-    
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -106,8 +119,10 @@
         $(document).ready(function() {
             $('#threatForm').on('submit', function() {
                 $('#submitButton').prop('disabled', true);
+                $('#loadingSpinner').show();
             });
         });
     </script>
 </body>
+
 </html>
