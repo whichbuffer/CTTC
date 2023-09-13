@@ -17,7 +17,8 @@ I created a simple Flask Web application in Python to scrap data from given URL 
 
 Figure 1 showing example usage of CTTC : 
 
-![Screenshot 2023-09-13 111745](https://github.com/whichbuffer/CTTC/assets/42712921/3c96f786-e0a8-43f7-913f-f2c9cdd38332)
+![Screenshot 2023-09-13 171137](https://github.com/whichbuffer/CTTC/assets/42712921/96f59216-a0e0-4754-a171-d8fc7fdfe5cc)
+
 
 
 
