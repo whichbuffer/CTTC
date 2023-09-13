@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash,jsonify
+from flask import Flask, render_template, redirect, url_for, flash, jsonify
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectMultipleField, BooleanField
 from wtforms.validators import DataRequired
@@ -10,26 +10,28 @@ import re
 import os
 from dotenv import load_dotenv
 
+# Constants
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+}
+UNWANTED_CLASSES = ['cz-related-article-wrapp', 'bc_downloads', 'bc_copyright', 'cz-comment-loggin-wrapp']
+MAX_TOKENS = 4000
+
+# Load environment variables
+load_dotenv()
+
+# Retrieve API and Secret Keys
+openai_api_key = os.getenv('OPENAI_API_KEY')
+if not openai_api_key:
+    raise ValueError("Missing OpenAI API key")
+secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Fallback to 'default_secret_key' if not specified
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = secret_key
 # Load environment variables from .env file
 load_dotenv()
 
-# Now retrieve the API key
-openai_api_key = os.environ.get('OPENAI_API_KEY')
-if not openai_api_key:
-    raise ValueError("Missing OpenAI API key")
 
-# You can now use the openai_api_key in your application
-
-
-
-app = Flask(__name__)
-# A secret key is needed to use Flask sessions and CSRF protection in Flask-WTF
-app.config['SECRET_KEY'] = 'your_secret_key'
-
-# Headers for making HTTP requests
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-}
 
 class ThreatResearchForm(FlaskForm):
     url = StringField('URL of the threat research', validators=[DataRequired()])
@@ -68,53 +70,55 @@ def format_course_of_action(coa_text):
     else:
         return ''.join(formatted_text)
 
+def extract_data_from_url(url: str) -> str:
+    try:
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        for unwanted_div in soup.find_all('div', class_='tab-content'):
+            unwanted_div.decompose()
+
+        for class_name in UNWANTED_CLASSES:
+            for unwanted_div in soup.find_all('div', class_=class_name):
+                unwanted_div.decompose()
+
+        return " ".join([p.get_text() for p in soup.find_all('p')])
+
+    except requests.RequestException as e:
+        raise ValueError(f"Failed to fetch URL content. Error: {e}")
+    
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = ThreatResearchForm()
     course_of_action = None
 
     if form.validate_on_submit():
-        data = ""
         try:
-            response = requests.get(form.url.data, headers=headers)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, 'html.parser')
+            data = extract_data_from_url(form.url.data)
+            
+            if len(data) > MAX_TOKENS:
+                data = data[:MAX_TOKENS]
 
-            unwanted_divs = soup.find_all('div', class_='tab-content')
-            for unwanted_div in unwanted_divs:
-                unwanted_div.decompose()
+            message_content = f"URL content:\n{data}\n"
+            if form.summarize_event.data:
+                message_content += "Please summarize this event.\n"
+            for action in form.actions.data:
+                message_content += f"Give me a {action} method against the above content.\n"
 
-            unwanted_classes = ['cz-related-article-wrapp', 'bc_downloads','bc_copyright','cz-comment-loggin-wrapp']
-            for class_name in unwanted_classes:
-                for unwanted_div in soup.find_all('div', class_=class_name):
-                    unwanted_div.decompose()
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "user", "content": message_content}
+                ]
+            )
+            course_of_action = format_course_of_action(response.choices[0].message['content'])
 
-            data = " ".join([p.get_text() for p in soup.find_all('p')])
-
-        except:
-            flash('Failed to fetch URL content.', 'error')
+        except ValueError as e:
+            flash(str(e), 'error')
             return redirect(url_for('index'))
 
-        MAX_TOKENS = 4000
-        if len(data) > MAX_TOKENS:
-            data = data[:MAX_TOKENS]
-
-        message_content = f"URL content:\n{data}\n"
-        if form.summarize_event.data:
-            message_content += "Please summarize this event.\n"
-        for action in form.actions.data:
-            message_content += f"Give me a {action} method against the above content.\n"
-
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "user", "content": message_content}
-            ]
-        )
-        course_of_action = format_course_of_action(response.choices[0].message['content'])
-
     return render_template('index.html', form=form, course_of_action=course_of_action)
-
 
 
 if __name__ == '__main__':
