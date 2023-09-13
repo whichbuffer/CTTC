@@ -15,6 +15,11 @@ I created a simple Flask Web application in Python to scrap data from given URL 
   * Detection against this threat
   * Summary about this threat
 
+Figure 1 showing example usage of CTTC : 
+
+![Screenshot 2023-09-13 111745](https://github.com/whichbuffer/CTTC/assets/42712921/3c96f786-e0a8-43f7-913f-f2c9cdd38332)
+
+
 
 ## Limitation 
 
