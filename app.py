@@ -28,8 +28,7 @@ secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Fallback to 'defau
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secret_key
-# Load environment variables from .env file
-load_dotenv()
+
 
 
 
