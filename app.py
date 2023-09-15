@@ -9,16 +9,19 @@ from bs4 import BeautifulSoup
 import re
 import os
 from dotenv import load_dotenv
+import logging
 
 # Constants
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
-UNWANTED_CLASSES = ['cz-related-article-wrapp', 'bc_downloads', 'bc_copyright', 'cz-comment-loggin-wrapp']
+UNWANTED_CLASSES = ['cz-related-article-wrapp', 'bc_downloads', 'bc_copyright', 'cz-comment-loggin-wrapp','copy']
 MAX_TOKENS = 4000
 
 # Load environment variables
 load_dotenv()
+logging.basicConfig(level=logging.DEBUG)
+
 
 # Retrieve API and Secret Keys
 openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -75,12 +78,9 @@ def extract_data_from_url(url: str) -> str:
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
-        for unwanted_div in soup.find_all('div', class_='tab-content'):
-            unwanted_div.decompose()
-
         for class_name in UNWANTED_CLASSES:
-            for unwanted_div in soup.find_all('div', class_=class_name):
-                unwanted_div.decompose()
+            for unwanted_element in soup.find_all(True, class_=class_name):  # True will match against any tag
+                unwanted_element.decompose()
 
         return " ".join([p.get_text() for p in soup.find_all('p')])
 
@@ -95,9 +95,10 @@ def index():
     if form.validate_on_submit():
         try:
             data = extract_data_from_url(form.url.data)
-            
+
             if len(data) > MAX_TOKENS:
                 data = data[:MAX_TOKENS]
+                logging.debug(data)
 
             message_content = f"URL content:\n{data}\n"
             if form.summarize_event.data:
