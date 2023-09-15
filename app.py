@@ -72,6 +72,27 @@ def format_course_of_action(coa_text):
     else:
         return ''.join(formatted_text)
 
+def split_text_into_chunks(text, max_size):
+    """
+    Splits the given text into chunks that are approximately max_size long.
+    """
+    words = text.split()
+    chunks = []
+    current_chunk = []
+
+    current_length = 0
+    for word in words:
+        if current_length + len(word) <= max_size:
+            current_chunk.append(word)
+            current_length += len(word)
+        else:
+            chunks.append(' '.join(current_chunk))
+            current_chunk = [word]
+            current_length = len(word)
+
+    chunks.append(' '.join(current_chunk))
+    return chunks
+
 def extract_data_from_url(url: str) -> str:
     try:
         response = requests.get(url, headers=HEADERS)
@@ -100,36 +121,36 @@ def extract_data_from_url(url: str) -> str:
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = ThreatResearchForm()
-    course_of_action = None
+    course_of_action = ""
 
     if form.validate_on_submit():
         try:
-            
             data = extract_data_from_url(form.url.data)
-           
-            if len(data) > MAX_TOKENS:
-                data = data[:MAX_TOKENS]
-                logging.debug(data)
+            data_chunks = split_text_into_chunks(data, MAX_TOKENS)
 
-            message_content = f"URL content:\n{data}\n"
-            if form.summarize_event.data:
-                message_content += "Please summarize this event.\n"
-            for action in form.actions.data:
-                message_content += f"Give me a actionable {action} logic against it. I want you to gave mentions such as  I saw xyz in the article that you gave and here is the {action}.\n"
+            # Process each chunk and concatenate responses
+            for chunk in data_chunks:
+                message_content = f"URL content:\n{chunk}\n"
 
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "user", "content": message_content}
-                ]
-            )
-            course_of_action = format_course_of_action(response.choices[0].message['content'])
+                if form.summarize_event.data:
+                    message_content += "Please summarize this event.\n"
+                for action in form.actions.data:
+                    message_content += f"Give me a actionable {action} logic against it. I want you to gave mentions such as I saw xyz in the article that you gave and here is the {action}.\n"
+
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "user", "content": message_content}
+                    ]
+                )
+                course_of_action += format_course_of_action(response.choices[0].message['content'])
 
         except ValueError as e:
             flash(str(e), 'error')
             return redirect(url_for('index'))
 
     return render_template('index.html', form=form, course_of_action=course_of_action)
+
 
 
 if __name__ == '__main__':
