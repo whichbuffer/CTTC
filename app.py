@@ -15,7 +15,7 @@ import logging
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
-UNWANTED_CLASSES = ['cz-related-article-wrapp', 'bc_downloads', 'bc_copyright', 'cz-comment-loggin-wrapp','copy']
+UNWANTED_CLASSES = ['cz-related-article-wrapp', 'bc_downloads', 'bc_copyright', 'cz-comment-loggin-wrapp','copy','bc_right_sidebar']
 MAX_TOKENS = 4000
 
 # Load environment variables
@@ -79,13 +79,23 @@ def extract_data_from_url(url: str) -> str:
         soup = BeautifulSoup(response.text, 'html.parser')
 
         for class_name in UNWANTED_CLASSES:
-            for unwanted_element in soup.find_all(True, class_=class_name):  # True will match against any tag
+            for unwanted_element in soup.find_all(class_=class_name):
                 unwanted_element.decompose()
 
-        return " ".join([p.get_text() for p in soup.find_all('p')])
+        extracted_text = " ".join([p.get_text() for p in soup.find_all('p')])
+        
+        # Remove Unicode escape sequences using regex
+        cleaned_text = re.sub(r'\\\\u[0-9a-fA-F]{4}', '', extracted_text)
+        cleaned_text = cleaned_text.replace('\u00a0', ' ')
+  
+
+
+
+        return cleaned_text
 
     except requests.RequestException as e:
         raise ValueError(f"Failed to fetch URL content. Error: {e}")
+
     
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -94,8 +104,9 @@ def index():
 
     if form.validate_on_submit():
         try:
+            
             data = extract_data_from_url(form.url.data)
-
+           
             if len(data) > MAX_TOKENS:
                 data = data[:MAX_TOKENS]
                 logging.debug(data)
@@ -104,7 +115,7 @@ def index():
             if form.summarize_event.data:
                 message_content += "Please summarize this event.\n"
             for action in form.actions.data:
-                message_content += f"Give me a {action} method against the above content.\n"
+                message_content += f"Give me a actionable {action} logic against it. I want you to gave mentions such as  I saw xyz in the article that you gave and here is the {action}.\n"
 
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
