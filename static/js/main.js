@@ -1,4 +1,5 @@
 $(document).ready(function() {
+    
     const currentTheme = localStorage.getItem('theme');
     
     if (currentTheme) {
@@ -25,3 +26,5 @@ $(document).ready(function() {
         }
     });
 });
+
+

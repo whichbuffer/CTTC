@@ -1,6 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
+
 body {
     background-color: #f7f7f7;
     color: #333; /* Default text color for light mode */
+    font-family: "Montserrat", sans-serif;
 }
 
 .button-style {
@@ -75,3 +78,11 @@ body[data-theme="light"] {
 .course-of-action-content {
     font-family: 'Consolas', monospace;
 }
+#themeToggle {
+    top: 10px;
+    right: 10px;
+}
+
+
+
+
