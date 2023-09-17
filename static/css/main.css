@@ -1,0 +1,77 @@
+body {
+    background-color: #f7f7f7;
+    color: #333; /* Default text color for light mode */
+}
+
+.button-style {
+    padding-top: 20px;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+    background-color: rgba(69, 89, 164, .5);
+    border-color: rgba(69, 89, 164, .5);
+}
+
+.custom-switch .custom-control-label::before {
+    border-radius: .25rem;
+}
+
+.custom-switch .custom-control-input:checked ~ .custom-control-label::after {
+    background-color: #fff;
+    transform: translateX(.75rem);
+}
+
+#usageSection {
+    margin-bottom: 20px;
+}
+
+.usage-btn {
+    margin-top: 10px;
+    margin-right: 40px;
+}
+
+.usage-btn img {
+    vertical-align: middle;
+}
+
+.main-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+body[data-theme="dark"] {
+    background-color: #343a40;
+    color: #ffffff;
+}
+
+body[data-theme="dark"] .main-container {
+    background: #232323;
+    color: #ddd;
+}
+
+body[data-theme="dark"] .card {
+    background-color: #424242;
+    color: #ddd;
+}
+
+body[data-theme="dark"] .card h5 {
+    color: #ccc;
+}
+
+body[data-theme="dark"] ul li {
+    color: #bcbcbc;
+}
+
+body[data-theme="dark"] .btn-link {
+    color: #61dafb; /* A light blue color, you can change this to any other light color */
+}
+
+body[data-theme="light"] {
+    background-color: #f7f7f7;
+    color: #333;
+}
+.course-of-action-content {
+    font-family: 'Consolas', monospace;
+}

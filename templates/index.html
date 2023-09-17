@@ -5,53 +5,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet">
     <title>CTTC - Cyber Threat to Context</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
-<style>
-    body {
-        background-color: #f7f7f7;
-    }
-
-    .button-style {
-        padding-top: 20px;
-    }
-
-    .custom-control-input:checked ~ .custom-control-label::before {
-        background-color: rgba(69, 89, 164, .5);
-        border-color: rgba(69, 89, 164, .5);
-    }
-
-    .custom-switch .custom-control-label::before {
-        border-radius: .25rem;
-    }
-
-    .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
-        background-color: #fff;
-        transform: translateX(.75rem);
-    }
-
-    #usageSection {
-        margin-bottom: 20px;
-    }
-
-    .usage-btn {
-        margin-top: 10px;
-        margin-right: 40px;
-    }
-
-    .usage-btn img {
-        vertical-align: middle;
-    }
-
-    .main-container {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    }
-</style>
 
 <body>
 
@@ -73,6 +30,11 @@
                 </ul>
             </div>
         </div>
+
+        <!-- Toggle Button for Dark Mode -->
+        <button id="themeToggle" class="btn btn-dark">Toggle Dark Mode</button>
+
+
 
         <form action="/" method="post" enctype="multipart/form-data" id="threatForm">
             {{ form.hidden_tag() }}
@@ -115,14 +77,8 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $('#threatForm').on('submit', function() {
-                $('#submitButton').prop('disabled', true);
-                $('#loadingSpinner').show();
-            });
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
 </body>
 
 </html>
