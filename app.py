@@ -1,3 +1,9 @@
+# Standard libraries
+import os
+import re
+import logging
+
+# Third-party libraries
 from flask import Flask, render_template, redirect, url_for, flash, jsonify
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, SelectMultipleField, BooleanField
@@ -6,10 +12,7 @@ from wtforms.widgets import ListWidget, CheckboxInput
 import requests
 import openai
 from bs4 import BeautifulSoup
-import re
-import os
 from dotenv import load_dotenv
-import logging
 
 # Constants
 HEADERS = {
@@ -18,23 +21,27 @@ HEADERS = {
 UNWANTED_CLASSES = ['cz-related-article-wrapp', 'bc_downloads', 'bc_copyright', 'cz-comment-loggin-wrapp','copy','bc_right_sidebar']
 MAX_TOKENS = 4000
 
-# Load environment variables
-load_dotenv()
+# Initialize logging
 logging.basicConfig(level=logging.DEBUG)
 
+# Load environment variables
+def load_environment_vars():
+    load_dotenv()
+    openai_api_key = os.getenv('OPENAI_API_KEY')
+    if not openai_api_key:
+        raise ValueError("Missing OpenAI API key")
+    secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Fallback to 'default_secret_key' if not specified
+    return openai_api_key, secret_key
 
-# Retrieve API and Secret Keys
-openai_api_key = os.getenv('OPENAI_API_KEY')
-if not openai_api_key:
-    raise ValueError("Missing OpenAI API key")
-secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Fallback to 'default_secret_key' if not specified
+OPENAI_API_KEY, SECRET_KEY = load_environment_vars()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = secret_key
+app.config['SECRET_KEY'] = SECRET_KEY
 
 
 
 
+# Form Definitions
 class ThreatResearchForm(FlaskForm):
     url = StringField('URL of the threat research', validators=[DataRequired()])
     actions = SelectMultipleField('Choose Course of Action', choices=[
@@ -127,29 +134,32 @@ def index():
         try:
             data = extract_data_from_url(form.url.data)
             data_chunks = split_text_into_chunks(data, MAX_TOKENS)
+            
+            # Combine all chunks into a single message
+            all_data = "\n\n".join(data_chunks)
+            messages = [{"role": "user", "content": f"URL content:\n{all_data}\n"}]
 
-            # Process each chunk and concatenate responses
-            for chunk in data_chunks:
-                message_content = f"URL content:\n{chunk}\n"
+            if form.summarize_event.data:
+                messages.append({"role": "user", "content": "Please summarize this event."})
+                
+            for action in form.actions.data:
+                action_message = f"Give me actionable {action} logic against it. I want you to give mentions such as I saw xyz in the article that you provided and here is the {action}."
+                messages.append({"role": "user", "content": action_message})
 
-                if form.summarize_event.data:
-                    message_content += "Please summarize this event.\n"
-                for action in form.actions.data:
-                    message_content += f"Give me a actionable {action} logic against it. I want you to gave mentions such as I saw xyz in the article that you gave and here is the {action}.\n"
-
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "user", "content": message_content}
-                    ]
-                )
-                course_of_action += format_course_of_action(response.choices[0].message['content'])
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=messages
+            )
+            
+            course_of_action += format_course_of_action(response.choices[0].message['content'])
 
         except ValueError as e:
             flash(str(e), 'error')
             return redirect(url_for('index'))
 
     return render_template('index.html', form=form, course_of_action=course_of_action)
+
+
 
 
 
