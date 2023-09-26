@@ -15,9 +15,13 @@ I created a simple Flask Web application in Python to scrap data from given URL 
   * Detection against this threat
   * Summary about this threat
 
-Figure 1 showing example usage of CTTC : 
+Below figures showing example usage of CTTC against threat report from SentinelOne: 
 
-![Screenshot 2023-09-13 171137](https://github.com/whichbuffer/CTTC/assets/42712921/96f59216-a0e0-4754-a171-d8fc7fdfe5cc)
+
+![CTTC_2](https://github.com/whichbuffer/CTTC/assets/42712921/b2b9f64f-efa8-4f0b-9715-c7b8534a8255)
+
+![CTTC_1](https://github.com/whichbuffer/CTTC/assets/42712921/5010dfe1-4103-4f5b-b878-c28b37c9b321)
+
 
 
 
