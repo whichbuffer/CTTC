@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
 }
-UNWANTED_CLASSES = ['cz-related-article-wrapp', 'bc_downloads', 'bc_copyright', 'cz-comment-loggin-wrapp','copy','bc_right_sidebar']
+UNWANTED_CLASSES = ['cz-related-article-wrapp', 'bc_downloads', 'bc_copyright', 'cz-comment-loggin-wrapp','copy','bc_right_sidebar','srpw_widget-3','entry-author','textwidget','marketo-blog-subscribe']
 MAX_TOKENS = 4000
 
 # Initialize logging
